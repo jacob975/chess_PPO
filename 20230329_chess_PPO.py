@@ -10,6 +10,11 @@ print(env.render())
 
 # Create the agent
 model = ppo.PPO("MlpPolicy", env, verbose=1)
+env.set_adversary(model.predict)
 
+print("Training...")
 # Train the agent
-model.learn(total_timesteps=10000)
+model.learn(total_timesteps=1e6)
+
+# Save the agent
+model.save("chess_ppo")
