@@ -14,7 +14,7 @@ env.set_adversary(model.predict)
 
 print("Training...")
 # Train the agent
-model.learn(total_timesteps=1e6)
+model.learn(total_timesteps=1e6, tb_log_name="chess_ppo", log_interval=10)
 
 # Save the agent
 model.save("chess_ppo")

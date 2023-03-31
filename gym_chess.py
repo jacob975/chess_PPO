@@ -7,6 +7,7 @@ class GymChessEnv(gym.Env):
     def __init__(self, **kwargs):
         self.env = chess_v5.env(render_mode='ansi', **kwargs)
         self.turn = 0
+        self.adversary = None
         self.reset()
 
     def reset(self):
@@ -35,6 +36,26 @@ class GymChessEnv(gym.Env):
         # Observation for the next user
         obs = self.env.observe(f'player_{self.turn}')['observation']
         self.action_mask = self.env.observe(f'player_{self.turn}')['action_mask']
+        if done:
+            return obs, reward, done, info
+        
+        # Adversary
+        if self.adversary is not None:
+            # Get action from adversary
+            action = int(self.adversary(obs)[0])
+            # DO action
+            self.env.step(action)
+            self.turn = (self.turn+1) % 2
+            # Whether the game is done for the user who just input action
+            done = self.env.terminations[f'player_{self.turn}']
+            # Reward for input action
+            reward = self.env.rewards[f'player_{self.turn}']
+            # Info for input action
+            info = self.env.infos[f'player_{self.turn}']
+            # Observation for the next user
+            obs = self.env.observe(f'player_{self.turn}')['observation']
+            self.action_mask = self.env.observe(f'player_{self.turn}')['action_mask']
+
         return obs, reward, done, info
 
     def render(self):
