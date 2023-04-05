@@ -3,29 +3,22 @@ import time
 import numpy as np
 from gym_chess import GymChessEnv
 from custom_policy import CustomCNN
-import torchvision
 
 # Create the environment
 env = GymChessEnv()
 env.reset()
 print(env.render())
 
-# TODO: Not working yet
-#policy_kwargs = dict(
-#    features_extractor_class=torchvision.models.resnet18,
-#    features_extractor_kwargs=dict(num_classes=1000, pretrained=False), # 64*7*7
-#)
-
 policy_kwargs = dict(
     features_extractor_class=CustomCNN,
     features_extractor_kwargs=dict(features_dim=4672), # 64*7*7
 )
 
-# Create the agent
-#model = ppo.PPO("CnnPolicy", env, verbose=1, policy_kwargs=policy_kwargs)
-model = ppo.PPO("MlpPolicy", env, verbose=1)
-# Load previous saved model
-#env.set_adversary(model.predict)
+# Load previous saved model if available
+try:
+    model = ppo.PPO.load("chess_ppo", env=env)
+except:
+    model = ppo.PPO("MlpPolicy", env, verbose=1, policy_kwargs=policy_kwargs)
 
 print("Training...")
 # Train the agent
