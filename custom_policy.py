@@ -21,13 +21,13 @@ class CustomCNN(BaseFeaturesExtractor):
         n_input_channels = observation_space.shape[0]
 
         self.cnn = nn.Sequential(
-            nn.Conv2d(n_input_channels, 64, kernel_size=3, stride=1, padding=0),
-            nn.BatchNorm2d(64),
-            nn.ReLU(),
-            nn.Conv2d(64, 128, kernel_size=3, stride=1, padding=0),
+            nn.Conv2d(n_input_channels, 128, kernel_size=3, stride=1, padding=0),
             nn.BatchNorm2d(128),
             nn.ReLU(),
-            nn.Conv2d(128, 256, kernel_size=4, stride=1, padding=0),
+            nn.Conv2d(128, 256, kernel_size=3, stride=1, padding=0),
+            nn.BatchNorm2d(256),
+            nn.ReLU(),
+            nn.Conv2d(256, 512, kernel_size=4, stride=1, padding=0),
             nn.ReLU(),
             nn.Flatten(),
         )
@@ -49,4 +49,6 @@ if __name__ == '__main__':
         observation_space=spaces.Box(low=0, high=1, shape=(20, 8, 8), dtype=np.float32), 
         features_dim=256
     )
-    summary(model.cnn, (20, 8, 8))
+    # Activate cuda
+    model = model.cuda()
+    summary(model, (20, 8, 8))
