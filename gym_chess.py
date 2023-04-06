@@ -93,6 +93,7 @@ class GymChessEnv(gym.Env):
     def set_adversary(self, adversary):
         self.adversary = adversary
 
+    # TODO: Whether is it necessary to implement the following functions?
     def observe(self, agent):
         context = self.env.observe(agent)
         # Convert take the first 20 channels from a 8x8x111 table

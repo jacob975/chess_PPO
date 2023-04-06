@@ -19,29 +19,14 @@ class CustomCNN(BaseFeaturesExtractor):
         # We assume CxHxW images (channels first)
         # Re-ordering will be done by pre-preprocessing or wrapper
         n_input_channels = observation_space.shape[0]
-
-        self.cnn = nn.Sequential(
-            nn.Conv2d(n_input_channels, 128, kernel_size=3, stride=1, padding=0),
-            nn.BatchNorm2d(128),
-            nn.ReLU(),
-            nn.Conv2d(128, 256, kernel_size=3, stride=1, padding=0),
-            nn.BatchNorm2d(256),
-            nn.ReLU(),
-            nn.Conv2d(256, 512, kernel_size=4, stride=1, padding=0),
-            nn.ReLU(),
-            nn.Flatten(),
-        )
-
-        # Compute shape by doing one forward pass
-        with th.no_grad():
-            n_flatten = self.cnn(
-                th.as_tensor(observation_space.sample()[None]).float()
-            ).shape[1]
-
-        self.linear = nn.Sequential(nn.Linear(n_flatten, features_dim), nn.ReLU())
+        self.resnet18 = models.resnet18(pretrained=True)
+        # Set the input channels to the correct number
+        self.resnet18.conv1 = nn.Conv2d(n_input_channels, 64, kernel_size=7, stride=2, padding=3, bias=False)
+        # Set the output features to the correct number
+        self.resnet18.fc = nn.Linear(512, features_dim)
 
     def forward(self, observations: th.Tensor) -> th.Tensor:
-        return self.linear(self.cnn(observations))
+        return self.resnet18(observations)
     
 # Unit test
 if __name__ == '__main__':

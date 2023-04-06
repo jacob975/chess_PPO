@@ -5,7 +5,7 @@ class SetAdversaryCallback(BaseCallback):
         super(SetAdversaryCallback, self).__init__()
         self.update_freq = update_freq
         # THe adversary should have the same type as the model
-        assert type(adversary) == type(self.model)
+        #assert type(adversary) == type(self.model)
         self.adversary = adversary
 
     def _init_callback(self) -> None:
