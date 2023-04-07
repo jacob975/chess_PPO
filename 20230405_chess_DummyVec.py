@@ -25,7 +25,7 @@ adversary = ppo.PPO("MlpPolicy", env, verbose=1, policy_kwargs=policy_kwargs)
 
 print("Training...")
 # Train the agent
-callback = SetAdversaryCallback(update_freq=1e4, adversary=adversary)
+callback = SetAdversaryCallback(update_freq=1e4, adversary=None)
 model.learn(total_timesteps=1e6, tb_log_name="chess_ppo", callback=callback)
 
 # Save the agent

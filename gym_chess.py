@@ -96,9 +96,10 @@ class GymChessEnv(gym.Env):
     # TODO: Whether is it necessary to implement the following functions?
     def observe(self, agent):
         context = self.env.observe(agent)
-        # Convert take the first 20 channels from a 8x8x111 table
+        # Take the first 20 channels from a 8x8x111 table
         # and convert it to a 20x8x8 table
         context['observation'] = np.transpose(context['observation'], (2, 0, 1))
+        context['observation'] = context['observation'][:20]
         # If self.turn == 0, then the agent is white and the adversary is black
         # If self.turn == 1, then the agent is black and the adversary is white
         # channels 0-5 are white pieces and channels 6-11 are black pieces, 12 is empty

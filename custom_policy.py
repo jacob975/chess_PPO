@@ -19,20 +19,26 @@ class CustomCNN(BaseFeaturesExtractor):
         # We assume CxHxW images (channels first)
         # Re-ordering will be done by pre-preprocessing or wrapper
         n_input_channels = observation_space.shape[0]
-        self.resnet18 = models.resnet18(pretrained=True)
-        # Set the input channels to the correct number
-        self.resnet18.conv1 = nn.Conv2d(n_input_channels, 64, kernel_size=7, stride=2, padding=3, bias=False)
-        # Set the output features to the correct number
-        self.resnet18.fc = nn.Linear(512, features_dim)
+        feature_channels = features_dim // (observation_space.shape[1] * observation_space.shape[2])
+        # 3 layers of CNN with padding="same"
+        self.cnn = nn.Sequential(
+            nn.Conv2d(n_input_channels, 32, kernel_size=3, stride=1, padding=1),
+            nn.ReLU(),
+            nn.Conv2d(32, 64, kernel_size=3, stride=1, padding=1),
+            nn.ReLU(),
+            nn.Conv2d(64, feature_channels, kernel_size=3, stride=1, padding=1),
+            nn.ReLU(),
+            nn.Flatten(),
+        )
 
     def forward(self, observations: th.Tensor) -> th.Tensor:
-        return self.resnet18(observations)
+        return self.cnn(observations)
     
 # Unit test
 if __name__ == '__main__':
     model = CustomCNN(
         observation_space=spaces.Box(low=0, high=1, shape=(20, 8, 8), dtype=np.float32), 
-        features_dim=256
+        features_dim=4672
     )
     # Activate cuda
     model = model.cuda()

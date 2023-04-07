@@ -9,12 +9,15 @@ class SetAdversaryCallback(BaseCallback):
         self.adversary = adversary
 
     def _init_callback(self) -> None:
-        self.training_env.env_method("set_adversary", self.adversary.predict)
+        if self.adversary is None:
+            pass
+        else:
+            self.training_env.env_method("set_adversary", self.adversary.predict)
         print("Adversary set")
         return super()._init_callback()
 
     def _on_step(self) -> bool:
-        if self.n_calls % self.update_freq == 0:
+        if self.n_calls % self.update_freq == 0 and self.adversary is not None:
             # Set the parameters of the adversary
             self.adversary.set_parameters(self.model.get_parameters())
             print("Adversary updated")
