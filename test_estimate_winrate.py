@@ -26,28 +26,9 @@ policy_kwargs = dict(
 # 2. Create a PPO agent
 env = make_vec_env(GymChessEnv, n_envs=6, seed=0, vec_env_cls=DummyVecEnv)
 model = ppo.PPO("MlpPolicy", env, verbose=1, policy_kwargs=policy_kwargs)
-# 3. optional: load previous weights
-#model = ppo.PPO.load("chess_ppo", env=env, policy_kwargs=policy_kwargs)
 summary(model.policy.features_extractor.kernel, (111, 8, 8))
-# 4. Load the adversary
+# 3. Load the adversary
 adversary = ppo.PPO("MlpPolicy", env, verbose=1, policy_kwargs=policy_kwargs)
-#adversary = ppo.PPO.load("chess_ppo", env=env, policy_kwargs=policy_kwargs)
 
-# 5. Load the weights of the supervised model
-#supervised_model = SupervisedCNN(
-#    observation_space=spaces.Box(low=0, high=1, shape=(111, 8, 8), dtype=np.float32),
-#    features_dim=4672,
-#    normalize=False,
-#    activation_fn=th.nn.Sigmoid(),
-#)
-#supervised_model.load_state_dict(th.load("./models/supervised_model.pth"))
-#model.policy.features_extractor.kernel.load_state_dict(supervised_model.kernel.state_dict())
-#del supervised_model
-
-print("Training...")
-# 4. Train the agent
-callback = SetAdversaryCallback(update_freq=2048, adversary=adversary)
-model.learn(total_timesteps=1e6, tb_log_name="chess_ppo", callback=callback)
-
-# 5. Save the agent
-model.save("chess_ppo")
+# Put agent and adversary in the same device
+env.env_method("estimate_winrate", agent = model.predict, adversary = adversary.predict)

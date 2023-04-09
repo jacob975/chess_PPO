@@ -6,27 +6,31 @@ import numpy as np
 class GymChessEnv(gym.Env):
     def __init__(self, **kwargs):
         self.env = chess_v5.env(render_mode='ansi', **kwargs)
-        self.turn = 0
         self.adversary = None
         self.reset()
 
     def reset(self):
         # Reset the environment
         self.env.reset()
-        self.done = False
         self.turn = 0
 
         # The environment was set to a random state. i.e. all pieces are randomly placed on the board.
-        len_random_actions = np.random.randint(0, 40)
-        for i in range(len_random_actions):
-            action_mask = self.observe(f'player_{self.turn}')['action_mask']
-            possible_actions = np.where(action_mask>0)[0]
-            action = int(np.random.choice(possible_actions))
+        is_adversary_first = np.random.randint(2)
+        if is_adversary_first:
+            # Adversary
+            if self.adversary is not None:
+                # Get action from adversary
+                action = int(self.adversary(self.observe(f'player_{self.turn}')['observation'])[0])
+            else:
+                # If the adversary is not set, sample a random action from action_mask
+                action_mask = self.observe(f'player_{self.turn}')['action_mask']
+                possible_actions = np.where(action_mask>0)[0]
+                action = int(np.random.choice(possible_actions))
+
             self.env.step(action)
             done = self.env.terminations[f'player_{self.turn}']
             if done:
                 self.reset() # Reset again if the game is done after a random action
-                break
             self.turn = (self.turn+1) % 2
 
         # Define the action space and cast it to gym.spaces.discrete.Discrete
@@ -93,13 +97,12 @@ class GymChessEnv(gym.Env):
     def set_adversary(self, adversary):
         self.adversary = adversary
 
-    # TODO: Whether is it necessary to implement the following functions?
     def observe(self, agent):
         context = self.env.observe(agent)
         # Take the first 20 channels from a 8x8x111 table
         # and convert it to a 20x8x8 table
         context['observation'] = np.transpose(context['observation'], (2, 0, 1))
-        context['observation'] = context['observation'][:20]
+        #context['observation'] = context['observation'][:20]
         # If self.turn == 0, then the agent is white and the adversary is black
         # If self.turn == 1, then the agent is black and the adversary is white
         # channels 0-5 are white pieces and channels 6-11 are black pieces, 12 is empty
@@ -114,3 +117,85 @@ class GymChessEnv(gym.Env):
                 context['observation'][13*i-6 : 13*i] = context['observation'][13*i : 13*i+6]
                 context['observation'][13*i : 13*i+6] = tmp
         return context
+    
+    # Estimate the win rate of the agent against the adversary
+    # If the adversary is None, then the agent plays against a the set adversary
+    def estimate_winrate(self, agent, adversary=None, runs:int=20):
+        if adversary is None:
+            adversary = self.adversary
+        
+        # Play 20 games to estimate the win rate
+        agent_wins = 0
+        adversary_wins = 0
+        draws = 0
+        for i in range(runs):
+            # Reset the environment
+            self.env.reset()
+            self.turn = 0
+
+            who_starts = np.random.randint(2)
+            if who_starts == 1: # Adversary move first as turn 0
+                # Adversary's turn
+                if self.adversary is not None:
+                    # Get action from adversary
+                    action = int(self.adversary(self.observe(f'player_{self.turn}')['observation'])[0])
+                else:
+                    # If the adversary is not set, sample a random action from action_mask
+                    action_mask = self.observe(f'player_{self.turn}')['action_mask']
+                    possible_actions = np.where(action_mask>0)[0]
+                    action = int(np.random.choice(possible_actions))
+                self.env.step(action)
+                done = self.env.terminations[f'player_{self.turn}']
+                if done:
+                    #print(self.env.rewards[f'player_{(self.turn+1) % 2}'], self.env.rewards[f'player_{self.turn}'])
+                    if self.env.rewards[f'player_{self.turn}'] == 1: adversary_wins += 1
+                    elif self.env.rewards[f'player_{self.turn}'] == -1: agent_wins += 1
+                    else: draws += 1
+                    continue
+                self.turn = (self.turn+1) % 2
+
+            # Start the game
+            while True:
+
+                # Agent's turn
+                action = int(agent(self.observe(f'player_{self.turn}')['observation'])[0])
+                self.env.step(action)
+                done = self.env.terminations[f'player_{self.turn}']
+                if done:
+                    #print(self.env.rewards[f'player_{self.turn}'], self.env.rewards[f'player_{(self.turn+1) % 2}'])
+                    if self.env.rewards[f'player_{self.turn}'] == 1: agent_wins += 1
+                    elif self.env.rewards[f'player_{self.turn}'] == -1: adversary_wins += 1
+                    else: draws += 1
+                    break
+                self.turn = (self.turn+1) % 2
+
+                # Adversary's turn
+                if self.adversary is not None:
+                    # Get action from the adversary
+                    action = int(adversary(self.observe(f'player_{self.turn}')['observation'])[0])
+                else:
+                    # If the adversary is not set, sample a random action from action_mask
+                    action_mask = self.observe(f'player_{self.turn}')['action_mask']
+                    possible_actions = np.where(action_mask>0)[0]
+                    action = int(np.random.choice(possible_actions))                
+                self.env.step(action)
+                done = self.env.terminations[f'player_{self.turn}']
+                if done:
+                    #print(self.env.rewards[f'player_{(self.turn+1) % 2}'], self.env.rewards[f'player_{self.turn}'])
+                    if self.env.rewards[f'player_{self.turn}'] == 1: adversary_wins += 1
+                    elif self.env.rewards[f'player_{self.turn}'] == -1: agent_wins += 1
+                    else: draws += 1
+                    break
+                self.turn = (self.turn+1) % 2
+
+            # If no one won, then it's a draw
+            draws += 1
+
+        # Print to DEBUG
+        #print("Agent wins: ", agent_wins)
+        #print("Adversary wins: ", adversary_wins)
+        #print("Draws: ", draws)
+        # Reset the environment
+        self.reset()
+
+        return agent_wins/runs
