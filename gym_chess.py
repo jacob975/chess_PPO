@@ -132,6 +132,7 @@ class GymChessEnv(gym.Env):
             # Reset the environment
             self.env.reset()
             self.turn = 0
+            action_chain = []
 
             who_starts = np.random.randint(2)
             if who_starts == 1: # Adversary move first as turn 0
@@ -159,6 +160,7 @@ class GymChessEnv(gym.Env):
 
                 # Agent's turn
                 action = int(agent(self.observe(f'player_{self.turn}')['observation'])[0])
+                action_chain.append(action)
                 self.env.step(action)
                 done = self.env.terminations[f'player_{self.turn}']
                 if done:
@@ -187,6 +189,7 @@ class GymChessEnv(gym.Env):
                     else: draws += 1
                     break
                 self.turn = (self.turn+1) % 2
+            print("Action chain: ", action_chain)
 
             # If no one won, then it's a draw
             draws += 1

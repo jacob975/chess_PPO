@@ -27,13 +27,14 @@ policy_kwargs = dict(
 # 2. Create a PPO agent
 env = make_vec_env(GymChessEnv, n_envs=n_env, seed=0, vec_env_cls=DummyVecEnv)
 model = ppo.PPO(
-    "MlpPolicy", env, verbose=1, policy_kwargs=policy_kwargs,
+    "MlpPolicy", env, verbose=1, 
+    policy_kwargs=policy_kwargs,
     n_steps=n_steps,
     n_epochs=n_epochs,
     batch_size=n_steps*n_env, # Num of minibatch = 1
-    #clip_range=clip_range,
-    
+    clip_range=clip_range,
 )
+
 # 3. optional: load previous weights
 #model = ppo.PPO.load("chess_ppo", env=env, policy_kwargs=policy_kwargs)
 summary(model.policy.features_extractor.kernel, (111, 8, 8))

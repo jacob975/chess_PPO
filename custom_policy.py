@@ -31,7 +31,6 @@ def vanilla_cnn(n_input_channels, feature_channels):
         nn.Conv2d(32, 64, kernel_size=3, stride=1, padding='same'),
         nn.ReLU(),
         nn.Conv2d(64, feature_channels, kernel_size=3, stride=1, padding='same'),
-        nn.ReLU(),
     )
 
 class CustomCNN(BaseFeaturesExtractor):
