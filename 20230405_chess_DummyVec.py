@@ -10,6 +10,7 @@ from stable_baselines3.common.env_util import make_vec_env
 from stable_baselines3.common.vec_env import DummyVecEnv, SubprocVecEnv
 from callbacks import SetAdversaryCallback
 from torchsummary import summary
+from config import *
 # Not to allocate all the memory
 
 
@@ -24,8 +25,12 @@ policy_kwargs = dict(
 )
 
 # 2. Create a PPO agent
-env = make_vec_env(GymChessEnv, n_envs=6, seed=0, vec_env_cls=DummyVecEnv)
-model = ppo.PPO("MlpPolicy", env, verbose=1, policy_kwargs=policy_kwargs)
+env = make_vec_env(GymChessEnv, n_envs=n_env, seed=0, vec_env_cls=DummyVecEnv)
+model = ppo.PPO(
+    "MlpPolicy", env, verbose=1, policy_kwargs=policy_kwargs,
+    batch_size=n_steps*n_env, # Num of minibatch = 1
+    n_epochs=n_epochs,
+)
 # 3. optional: load previous weights
 #model = ppo.PPO.load("chess_ppo", env=env, policy_kwargs=policy_kwargs)
 summary(model.policy.features_extractor.kernel, (111, 8, 8))
@@ -47,7 +52,7 @@ adversary = ppo.PPO("MlpPolicy", env, verbose=1, policy_kwargs=policy_kwargs)
 print("Training...")
 # 4. Train the agent
 callback = SetAdversaryCallback(update_freq=2048, adversary=adversary)
-model.learn(total_timesteps=1e6, tb_log_name="chess_ppo", callback=callback)
+model.learn(total_timesteps=1e7, tb_log_name="chess_ppo", callback=callback, log_interval=10)
 
 # 5. Save the agent
 model.save("chess_ppo")

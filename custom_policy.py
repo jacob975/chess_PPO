@@ -4,11 +4,12 @@ import numpy as np
 from gym import spaces
 from torchvision import models
 from torchsummary import summary
+from torchvision.models import ResNet18_Weights # TODO: Test this model later.
 
 from stable_baselines3.common.torch_layers import BaseFeaturesExtractor
 
 def customed_resnet18(n_input_channels, feature_channels):
-    resnet = models.resnet18()
+    resnet = models.resnet18(weights=ResNet18_Weights)
     resnet.conv1 = nn.Conv2d(n_input_channels, 64, kernel_size=3, stride=1, padding=1, bias=False)
     # Keep the feature map size the same as the input
     # 1. Remove all maxpooling in resnet18
@@ -18,7 +19,7 @@ def customed_resnet18(n_input_channels, feature_channels):
         if isinstance(m, nn.Conv2d):
             m.stride = (1, 1)
     # Remove AvgPool2d and replace it with a Conv2d
-    resnet.avgpool = nn.Conv2d(512, feature_channels, kernel_size=1, stride=1, padding=0, bias=False)
+    resnet.avgpool = nn.Conv2d(512, feature_channels, kernel_size=3, stride=1, padding='same')
     # Remove the last fully connected layer
     resnet = nn.Sequential(*list(resnet.children())[:-1])
     return resnet
@@ -86,6 +87,7 @@ if __name__ == '__main__':
     )
     # Activate cuda
     model = model.cuda()
+    print(model)
     summary(model, (111, 8, 8))
 
     supervised_model = SupervisedCNN(
@@ -96,7 +98,7 @@ if __name__ == '__main__':
     )
     supervised_model = supervised_model.cuda()
     summary(supervised_model, (111, 8, 8))
-    supervised_model.load_state_dict(th.load("./models/supervised_model.pth"))
 
     # Assign the weights of the custom CNN to the supervised CNN
+    #supervised_model.load_state_dict(th.load("./models/supervised_model.pth"))
     supervised_model.kernel.load_state_dict(model.kernel.state_dict())
