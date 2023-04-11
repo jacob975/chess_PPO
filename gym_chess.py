@@ -25,7 +25,7 @@ class GymChessEnv(gym.Env):
             # Adversary
             if self.adversary is not None:
                 # Get action from adversary
-                action = int(self.adversary(self.observe(f'player_{self.turn}')['observation'])[0])
+                action = int(self.adversary.predict(self.observe(f'player_{self.turn}')['observation'])[0])
             else:
                 # If the adversary is not set, sample a random action from action_mask
                 action_mask = self.observe(f'player_{self.turn}')['action_mask']
@@ -71,7 +71,7 @@ class GymChessEnv(gym.Env):
         # Adversary
         if self.adversary is not None:
             # Get action from adversary
-            action = int(self.adversary(obs)[0])
+            action = int(self.adversary.predict(obs)[0])
         else:
             # If the adversary is not set, sample a random action from action_mask
             possible_actions = np.where(self.action_mask>0)[0]
@@ -146,10 +146,13 @@ class GymChessEnv(gym.Env):
             who_starts = np.random.randint(2)
             if who_starts == 1: # Adversary move first as turn 0
                 # Adversary's turn
-                if self.adversary is not None:
-                    # Get action from adversary
+                if isinstance(self.adversary, MaskablePPO):
+                    # Get action from the adversary
                     action_mask = self.observe(f'player_{self.turn}')['action_mask']
-                    action = int(self.adversary(self.observe(f'player_{self.turn}')['observation'], action_masks=action_mask)[0])
+                    action = int(self.adversary.predict(self.observe(f'player_{self.turn}')['observation'], action_masks=action_mask)[0])
+                elif isinstance(self.adversary, PPO):
+                    # Get action from the adversary
+                    action = int(self.adversary.predict(self.observe(f'player_{self.turn}')['observation'])[0])
                 else:
                     # If the adversary is not set, sample a random action from action_mask
                     action_mask = self.observe(f'player_{self.turn}')['action_mask']
@@ -169,8 +172,11 @@ class GymChessEnv(gym.Env):
             while True:
 
                 # Agent's turn
-                action_mask = self.observe(f'player_{self.turn}')['action_mask']
-                action = int(agent(self.observe(f'player_{self.turn}')['observation'], action_masks=action_mask)[0])
+                if isinstance(agent, MaskablePPO):
+                    action_mask = self.observe(f'player_{self.turn}')['action_mask']
+                    action = int(agent.predict(self.observe(f'player_{self.turn}')['observation'], action_masks=action_mask)[0])
+                elif isinstance(agent, PPO):
+                    action = int(agent.predict(self.observe(f'player_{self.turn}')['observation'])[0])
                 action_chain.append(action)
                 self.env.step(action)
                 done = self.env.terminations[f'player_{self.turn}']
@@ -183,10 +189,13 @@ class GymChessEnv(gym.Env):
                 self.turn = (self.turn+1) % 2
 
                 # Adversary's turn
-                if self.adversary is not None:
+                if isinstance(self.adversary, MaskablePPO):
                     # Get action from the adversary
                     action_mask = self.observe(f'player_{self.turn}')['action_mask']
-                    action = int(self.adversary(self.observe(f'player_{self.turn}')['observation'], action_masks=action_mask)[0])
+                    action = int(self.adversary.predict(self.observe(f'player_{self.turn}')['observation'], action_masks=action_mask)[0])
+                elif isinstance(self.adversary, PPO):
+                    # Get action from the adversary
+                    action = int(self.adversary.predict(self.observe(f'player_{self.turn}')['observation'])[0])
                 else:
                     # If the adversary is not set, sample a random action from action_mask
                     action_mask = self.observe(f'player_{self.turn}')['action_mask']
@@ -207,10 +216,8 @@ class GymChessEnv(gym.Env):
             draws += 1
 
         # Print to DEBUG
-        #print("Agent wins: ", agent_wins)
-        #print("Adversary wins: ", adversary_wins)
-        #print("Draws: ", draws)
+        print(f"Agent wins: {agent_wins}, Adversary wins: {adversary_wins}, Draws: {draws}")
         # Reset the environment
         self.reset()
 
-        return agent_wins/runs, adversary_wins/runs, draws/runs
+        return agent_wins/runs

@@ -1,5 +1,4 @@
 from stable_baselines3 import ppo
-from sb3_contrib import MarkablePPO
 import torch
 import time
 import numpy as np
