@@ -14,7 +14,15 @@ from config import *
 env = GymChessEnv()
 env = make_vec_env(GymChessEnv, n_envs=n_env, seed=0, vec_env_cls=DummyVecEnv)
 
-model = MaskablePPO("MlpPolicy", env, gamma=0.4, seed=32, verbose=1)
+model = MaskablePPO(
+    "MlpPolicy", env, gamma=0.4, seed=32, verbose=1,
+    n_steps=n_steps,
+    n_epochs=n_epochs,
+    batch_size=n_steps*n_env, # Num of minibatch = 1
+    clip_range=clip_range,
+    tensorboard_log="./markableppo_chess_tensorboard/"
+)
+
 adversary = MaskablePPO("MlpPolicy", env, gamma=0.4, seed=32, verbose=1)
 callback = SetAdversaryCallback(update_freq=2048, adversary=adversary)
 model.learn(1e7, callback=callback)

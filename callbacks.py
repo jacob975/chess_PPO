@@ -36,13 +36,16 @@ class SetAdversaryCallback(BaseCallback):
                 self.model.save("best_model")
                 str_update += " and model saved"
                 self.best_winrate_no_improvement = 0
+                print(str_winrate, str_update)
 
             # Stop the training if the best_winrate has no improvement for 5 times
-            elif agent_winrate < self.best_winrate:
-                self.best_winrate_no_improvement += 1
-                if self.best_winrate_no_improvement >= 5:
-                    self.training_env.env_method("set_adversary", None)
-                    self._on_training_end()
-                    return False
-            print(str_winrate, str_update)
+            #elif agent_winrate < self.best_winrate:
+            #    self.best_winrate_no_improvement += 1
+            #    if self.best_winrate_no_improvement >= 5:
+            #        self.training_env.env_method("set_adversary", None)
+            #        str_update += " and training stopped"
+            #        print(str_winrate, str_update)
+            #        self._on_training_end()
+            #        return False
+            
         return True

@@ -212,9 +212,6 @@ class GymChessEnv(gym.Env):
                 self.turn = (self.turn+1) % 2
             #print("Action chain: ", action_chain)
 
-            # If no one won, then it's a draw
-            draws += 1
-
         # Print to DEBUG
         print(f"Agent wins: {agent_wins}, Adversary wins: {adversary_wins}, Draws: {draws}")
         # Reset the environment
