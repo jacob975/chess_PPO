@@ -10,8 +10,8 @@ from config import *
 from stable_baselines3.common.torch_layers import BaseFeaturesExtractor
 
 def customed_resnet18(n_input_channels, feature_channels):
-    #resnet = models.resnet18(weights=ResNet18_Weights.IMAGENET1K_V1)
-    resnet = models.resnet18(weights=None)
+    #resnet = models.resnet18(weights=None) # None is better than 'imagenet'
+    resnet = models.resnet34(weights=None)
     resnet.conv1 = nn.Conv2d(n_input_channels, 64, kernel_size=3, stride=1, padding=1, bias=False)
     # Keep the feature map size the same as the input
     # 1. Remove all maxpooling in resnet18

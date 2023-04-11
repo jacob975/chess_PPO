@@ -36,7 +36,6 @@ class SetAdversaryCallback(BaseCallback):
                 self.model.save("best_model")
                 str_update += " and model saved"
                 self.best_winrate_no_improvement = 0
-                print(str_winrate, str_update)
 
             # Stop the training if the best_winrate has no improvement for 5 times
             #elif agent_winrate < self.best_winrate:
@@ -47,5 +46,7 @@ class SetAdversaryCallback(BaseCallback):
             #        print(str_winrate, str_update)
             #        self._on_training_end()
             #        return False
+            
+            print(str_winrate, str_update)
             
         return True

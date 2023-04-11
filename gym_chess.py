@@ -129,7 +129,7 @@ class GymChessEnv(gym.Env):
     
     # Estimate the win rate of the agent against the adversary
     # If the adversary is None, then the agent plays against a the set adversary
-    def estimate_winrate(self, agent, adversary=None, runs:int=20):
+    def estimate_winrate(self, agent, adversary=None, runs:int=10):
         if adversary is None:
             adversary = self.adversary
         
