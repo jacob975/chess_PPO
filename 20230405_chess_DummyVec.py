@@ -1,4 +1,5 @@
 from stable_baselines3 import ppo
+from sb3_contrib import MarkablePPO
 import torch
 import time
 import numpy as np
@@ -33,6 +34,7 @@ model = ppo.PPO(
     n_epochs=n_epochs,
     batch_size=n_steps*n_env, # Num of minibatch = 1
     clip_range=clip_range,
+    tensorboard_log="./ppo_chess_tensorboard/",
 )
 
 # 3. optional: load previous weights
@@ -56,7 +58,7 @@ adversary = ppo.PPO("MlpPolicy", env, verbose=1, policy_kwargs=policy_kwargs)
 print("Training...")
 # 4. Train the agent
 callback = SetAdversaryCallback(update_freq=2048, adversary=adversary)
-model.learn(total_timesteps=1e7, tb_log_name="chess_ppo", callback=callback, log_interval=10)
+model.learn(total_timesteps=1e7, tb_log_name="Default weights initialization", callback=callback, log_interval=10)
 
 # 5. Save the agent
 model.save("chess_ppo")

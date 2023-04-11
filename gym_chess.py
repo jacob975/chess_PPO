@@ -1,6 +1,11 @@
 from pettingzoo.classic import chess_v5
+from sb3_contrib import MaskablePPO
+from stable_baselines3.ppo import PPO
+
 import gym
 import numpy as np
+from sb3_contrib.common.maskable.utils import get_action_masks
+
 
 # Use gym to wrap the PettingZoo environment
 class GymChessEnv(gym.Env):
@@ -15,8 +20,8 @@ class GymChessEnv(gym.Env):
         self.turn = 0
 
         # The environment was set to a random state. i.e. all pieces are randomly placed on the board.
-        is_adversary_first = np.random.randint(2)
-        if is_adversary_first:
+        pre_steps = np.random.randint(2)
+        for i in range(pre_steps):
             # Adversary
             if self.adversary is not None:
                 # Get action from adversary
@@ -31,6 +36,7 @@ class GymChessEnv(gym.Env):
             done = self.env.terminations[f'player_{self.turn}']
             if done:
                 self.reset() # Reset again if the game is done after a random action
+                break
             self.turn = (self.turn+1) % 2
 
         # Define the action space and cast it to gym.spaces.discrete.Discrete
@@ -118,6 +124,9 @@ class GymChessEnv(gym.Env):
                 context['observation'][13*i : 13*i+6] = tmp
         return context
     
+    def action_masks(self):
+        return self.action_mask
+    
     # Estimate the win rate of the agent against the adversary
     # If the adversary is None, then the agent plays against a the set adversary
     def estimate_winrate(self, agent, adversary=None, runs:int=20):
@@ -139,7 +148,8 @@ class GymChessEnv(gym.Env):
                 # Adversary's turn
                 if self.adversary is not None:
                     # Get action from adversary
-                    action = int(self.adversary(self.observe(f'player_{self.turn}')['observation'])[0])
+                    action_mask = self.observe(f'player_{self.turn}')['action_mask']
+                    action = int(self.adversary(self.observe(f'player_{self.turn}')['observation'], action_masks=action_mask)[0])
                 else:
                     # If the adversary is not set, sample a random action from action_mask
                     action_mask = self.observe(f'player_{self.turn}')['action_mask']
@@ -159,7 +169,8 @@ class GymChessEnv(gym.Env):
             while True:
 
                 # Agent's turn
-                action = int(agent(self.observe(f'player_{self.turn}')['observation'])[0])
+                action_mask = self.observe(f'player_{self.turn}')['action_mask']
+                action = int(agent(self.observe(f'player_{self.turn}')['observation'], action_masks=action_mask)[0])
                 action_chain.append(action)
                 self.env.step(action)
                 done = self.env.terminations[f'player_{self.turn}']
@@ -174,7 +185,8 @@ class GymChessEnv(gym.Env):
                 # Adversary's turn
                 if self.adversary is not None:
                     # Get action from the adversary
-                    action = int(adversary(self.observe(f'player_{self.turn}')['observation'])[0])
+                    action_mask = self.observe(f'player_{self.turn}')['action_mask']
+                    action = int(self.adversary(self.observe(f'player_{self.turn}')['observation'], action_masks=action_mask)[0])
                 else:
                     # If the adversary is not set, sample a random action from action_mask
                     action_mask = self.observe(f'player_{self.turn}')['action_mask']
@@ -189,7 +201,7 @@ class GymChessEnv(gym.Env):
                     else: draws += 1
                     break
                 self.turn = (self.turn+1) % 2
-            print("Action chain: ", action_chain)
+            #print("Action chain: ", action_chain)
 
             # If no one won, then it's a draw
             draws += 1
@@ -201,4 +213,4 @@ class GymChessEnv(gym.Env):
         # Reset the environment
         self.reset()
 
-        return agent_wins/runs
+        return agent_wins/runs, adversary_wins/runs, draws/runs

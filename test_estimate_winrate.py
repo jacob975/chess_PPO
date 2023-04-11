@@ -16,6 +16,9 @@ from torchsummary import summary
 # 1. Test the environment
 env = GymChessEnv()
 env.reset()
+#action_mask = env.env.observe('player_0')['action_mask']
+#print(np.where(action_mask>0)[0])
+#exit()
 print(env.render())
 
 policy_kwargs = dict(
@@ -26,9 +29,11 @@ policy_kwargs = dict(
 # 2. Create a PPO agent
 env = make_vec_env(GymChessEnv, n_envs=6, seed=0, vec_env_cls=DummyVecEnv)
 model = ppo.PPO("MlpPolicy", env, verbose=1, policy_kwargs=policy_kwargs)
+# Optional: Load the saved model
+model = ppo.PPO.load("chess_ppo", env=env, policy_kwargs=policy_kwargs)
 summary(model.policy.features_extractor.kernel, (111, 8, 8))
 # 3. Load the adversary
 adversary = ppo.PPO("MlpPolicy", env, verbose=1, policy_kwargs=policy_kwargs)
 
 # Put agent and adversary in the same device
-env.env_method("estimate_winrate", agent = model.predict, adversary = adversary.predict)
+env.env_method("estimate_winrate", agent = model.predict, adversary = None)
