@@ -23,8 +23,12 @@ class GymChessEnv(gym.Env):
         pre_steps = np.random.randint(2)
         for i in range(pre_steps):
             # Adversary
-            if self.adversary is not None:
-                # Get action from adversary
+            if isinstance(self.adversary, MaskablePPO):
+                # Get action from the adversary
+                action_mask = self.observe(f'player_{self.turn}')['action_mask']
+                action = int(self.adversary.predict(self.observe(f'player_{self.turn}')['observation'], action_masks=action_mask)[0])
+            elif isinstance(self.adversary, PPO):
+                # Get action from the adversary
                 action = int(self.adversary.predict(self.observe(f'player_{self.turn}')['observation'])[0])
             else:
                 # If the adversary is not set, sample a random action from action_mask
@@ -68,13 +72,17 @@ class GymChessEnv(gym.Env):
         if done:
             return obs, reward, done, info
         
-        # Adversary
-        if self.adversary is not None:
-            # Get action from adversary
-            action = int(self.adversary.predict(obs)[0])
+        if isinstance(self.adversary, MaskablePPO):
+            # Get action from the adversary
+            action_mask = self.observe(f'player_{self.turn}')['action_mask']
+            action = int(self.adversary.predict(self.observe(f'player_{self.turn}')['observation'], action_masks=action_mask)[0])
+        elif isinstance(self.adversary, PPO):
+            # Get action from the adversary
+            action = int(self.adversary.predict(self.observe(f'player_{self.turn}')['observation'])[0])
         else:
             # If the adversary is not set, sample a random action from action_mask
-            possible_actions = np.where(self.action_mask>0)[0]
+            action_mask = self.observe(f'player_{self.turn}')['action_mask']
+            possible_actions = np.where(action_mask>0)[0]
             action = int(np.random.choice(possible_actions))
 
         # Do the adversarial action

@@ -9,7 +9,7 @@ from config import *
 
 from stable_baselines3.common.torch_layers import BaseFeaturesExtractor
 
-def customed_resnet18(n_input_channels, feature_channels):
+def customed_resnet(n_input_channels, feature_channels):
     #resnet = models.resnet18(weights=None) # None is better than 'imagenet'
     resnet = models.resnet34(weights=None)
     resnet.conv1 = nn.Conv2d(n_input_channels, 64, kernel_size=3, stride=1, padding=1, bias=False)
@@ -47,7 +47,7 @@ class CustomCNN(BaseFeaturesExtractor):
         # Re-ordering will be done by pre-preprocessing or wrapper
         n_input_channels = observation_space.shape[0]
         feature_channels = features_dim // (observation_space.shape[1] * observation_space.shape[2])
-        self.kernel = customed_resnet18(n_input_channels, feature_channels)
+        self.kernel = customed_resnet(n_input_channels, feature_channels)
         #self.kernel = vanilla_cnn(n_input_channels, feature_channels)
         self.flatten = nn.Flatten()
         
@@ -64,7 +64,7 @@ class SupervisedCNN(th.nn.Module):
         super().__init__()
         n_input_channels = observation_space.shape[0]
         feature_channels = features_dim // (observation_space.shape[1] * observation_space.shape[2])
-        self.kernel = customed_resnet18(n_input_channels, feature_channels)
+        self.kernel = customed_resnet(n_input_channels, feature_channels)
         #self.kernel = vanilla_cnn(n_input_channels, feature_channels)
         self.flatten = nn.Flatten()
         self.normalize = normalize

@@ -9,6 +9,7 @@ from gym_chess import GymChessEnv
 from callbacks import SetAdversaryCallback
 from custom_policy import CustomCNN
 from config import *
+import torch as th
 
 
 #env = InvalidActionEnvDiscrete(dim=80, n_invalid_actions=60)
@@ -24,17 +25,15 @@ model = MaskablePPO(
     "MlpPolicy", env, gamma=0.4, seed=32, verbose=1,
     #n_steps=n_steps,
     #n_epochs=n_epochs,
-    #batch_size=n_steps*n_env, # Num of minibatch = 1
-    clip_range=clip_range,
+    #clip_range=clip_range,
+    batch_size=256,
     policy_kwargs=policy_kwargs,
     tensorboard_log="./markableppo_chess_tensorboard/"
 )
 
 adversary = MaskablePPO("MlpPolicy", env, gamma=0.4, seed=32, verbose=1)
 callback = SetAdversaryCallback(update_freq=2048, adversary=adversary)
-model.learn(1e7, callback=callback)
+model.learn(1e7, callback=callback, tb_log_name="resnet34-batch256-env4-ppo")
 
-#evaluate_policy(model, env, n_eval_episodes=20, reward_threshold=90, warn=False)
-
-model.save("ppo_mask")
+model.save("resnet34-batch256-env4-ppo")
 del model # remove to demonstrate saving and loading
