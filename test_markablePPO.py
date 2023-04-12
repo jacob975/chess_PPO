@@ -22,18 +22,18 @@ policy_kwargs = dict(
 )
 
 model = MaskablePPO(
-    "MlpPolicy", env, gamma=0.4, seed=32, verbose=1,
+    "MlpPolicy", env, gamma=0.4, seed=None, verbose=1,
     #n_steps=n_steps,
     #n_epochs=n_epochs,
     #clip_range=clip_range,
-    batch_size=256,
+    #batch_size=256,
     policy_kwargs=policy_kwargs,
     tensorboard_log="./markableppo_chess_tensorboard/"
 )
 
-adversary = MaskablePPO("MlpPolicy", env, gamma=0.4, seed=32, verbose=1)
-callback = SetAdversaryCallback(update_freq=2048, adversary=adversary)
-model.learn(1e7, callback=callback, tb_log_name="resnet34-batch256-env4-ppo")
+adversary = MaskablePPO("MlpPolicy", env, gamma=0.4, seed=None, verbose=1)
+callback = SetAdversaryCallback(update_freq=2048*n_env, adversary=adversary)
+model.learn(1e7, callback=callback, tb_log_name="resnet34-batch64-env4-ppo")
 
-model.save("resnet34-batch256-env4-ppo")
+model.save("resnet34-batch64-env4-ppo")
 del model # remove to demonstrate saving and loading
