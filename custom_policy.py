@@ -5,7 +5,6 @@ from gym import spaces
 from torchvision import models
 from torchsummary import summary
 from torchvision.models import ResNet18_Weights # TODO: Test this model later.
-from config import *
 
 from stable_baselines3.common.torch_layers import BaseFeaturesExtractor
 

@@ -22,7 +22,8 @@ class SetAdversaryCallback(BaseCallback):
     def _on_step(self) -> bool:
         if self.n_calls % self.update_freq == 0:
             #agent_winrate = np.mean(self.training_env.env_method("estimate_winrate", agent = self.model))
-            ep_rew_mean = np.mean([rew_list.count(1)/len(rew_list) for rew_list in self.training_env.env_method("get_episode_rewards")])
+            ep_rew_matrix = [rew_list[-10:] for rew_list in self.training_env.env_method("get_episode_rewards")]
+            ep_rew_mean = np.mean([rew_list.count(1)/len(rew_list) for rew_list in ep_rew_matrix])
             str_winrate = f"Agent winrate: {100*ep_rew_mean:.2f} %."
             # Update the adversary if the winrate of the agent is higher than 0.55
             if ep_rew_mean >= 0.55:
