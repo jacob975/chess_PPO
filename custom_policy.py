@@ -25,6 +25,22 @@ def customed_resnet(n_input_channels, feature_channels):
     resnet = nn.Sequential(*list(resnet.children())[:-1])
     return resnet
 
+def customed_resnext(n_input_channels, feature_channels):
+    resnext = models.resnext50_32x4d(weights=None)
+    resnext.conv1 = nn.Conv2d(n_input_channels, 64, kernel_size=3, stride=1, padding=1, bias=False)
+    # Keep the feature map size the same as the input
+    # 1. Remove all maxpooling in resnet18
+    resnext.maxpool = nn.Identity()
+    # 2. Remove all strides in resnet18
+    for m in resnext.modules():
+        if isinstance(m, nn.Conv2d):
+            m.stride = (1, 1)
+    # Remove AvgPool2d and replace it with a Conv2d
+    resnext.avgpool = nn.Conv2d(2048, feature_channels, kernel_size=3, stride=1, padding='same')
+    # Remove the last fully connected layer
+    resnext = nn.Sequential(*list(resnext.children())[:-1])
+    return resnext
+
 def vanilla_cnn(n_input_channels, feature_channels):
     return nn.Sequential(
         nn.Conv2d(n_input_channels,32, kernel_size=3, stride=1, padding='same'),
@@ -46,8 +62,10 @@ class CustomCNN(BaseFeaturesExtractor):
         # Re-ordering will be done by pre-preprocessing or wrapper
         n_input_channels = observation_space.shape[0]
         feature_channels = features_dim // (observation_space.shape[1] * observation_space.shape[2])
-        self.kernel = customed_resnet(n_input_channels, feature_channels)
         #self.kernel = vanilla_cnn(n_input_channels, feature_channels)
+        #self.kernel = customed_resnet(n_input_channels, feature_channels)
+        self.kernel = customed_resnext(n_input_channels, feature_channels)
+        
         self.flatten = nn.Flatten()
         
     def forward(self, x: th.Tensor) -> th.Tensor:
@@ -63,8 +81,9 @@ class SupervisedCNN(th.nn.Module):
         super().__init__()
         n_input_channels = observation_space.shape[0]
         feature_channels = features_dim // (observation_space.shape[1] * observation_space.shape[2])
-        self.kernel = customed_resnet(n_input_channels, feature_channels)
         #self.kernel = vanilla_cnn(n_input_channels, feature_channels)
+        #self.kernel = customed_resnet(n_input_channels, feature_channels)
+        self.kernel = customed_resnext(n_input_channels, feature_channels)
         self.flatten = nn.Flatten()
         self.normalize = normalize
         self.activation_fn = activation_fn
