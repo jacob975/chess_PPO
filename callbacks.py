@@ -39,6 +39,9 @@ class SetAdversaryCallback(BaseCallback):
                 str_update += " and model saved"
                 self.best_winrate_no_improvement = 0
 
+            # Save another model anyway
+            self.model.save("last_model")
+
             # Stop the training if the best_winrate has no improvement for 5 times
             #elif agent_winrate < self.best_winrate:
             #    self.best_winrate_no_improvement += 1
