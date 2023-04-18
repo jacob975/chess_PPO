@@ -32,13 +32,13 @@ model = MaskablePPO(
     tensorboard_log="./markableppo_chess_tensorboard/"
 )
 # Reload the model
-#model = MaskablePPO.load(
-#    "best_model", env=env, verbose=1,
-#    n_epochs=n_epochs,
-#    batch_size=batch_size,
-#    policy_kwargs=policy_kwargs,
-#    tensorboard_log="./markableppo_chess_tensorboard/"
-#)
+model = MaskablePPO.load(
+    "last_model", env=env, verbose=1,
+    n_epochs=n_epochs,
+    batch_size=batch_size,
+    policy_kwargs=policy_kwargs,
+    tensorboard_log="./markableppo_chess_tensorboard/"
+)
 
 adversary = MaskablePPO(
     "MlpPolicy", env, gamma=0.4, seed=None, verbose=1,

@@ -1,6 +1,8 @@
 from pettingzoo.classic import chess_v5
 from sb3_contrib import MaskablePPO
 from stable_baselines3.ppo import PPO
+# Import chess_utils from pettingzoo
+from pettingzoo.classic.chess import chess_utils
 
 import gym
 import numpy as np
@@ -50,6 +52,22 @@ class GymChessEnv(gym.Env):
         self.observation_space = gym.spaces.box.Box(low=0, high=1, shape=obs.shape, dtype=np.float32)
         self.action_mask = self.observe(f'player_{self.turn}')['action_mask']
         return obs
+
+    def action_to_move(self, action:int):
+        # Convert action to UCI
+        # e.g. action = 0, uci = 'a1a2'
+        # e.g. action = 1, uci = 'a1a3'
+        # e.g. action = 2, uci = 'a1a4'
+        uci = chess_utils.actions_to_moves[action]
+        return uci
+    
+    def move_to_action(self, uci:str):
+        # Convert UCI to action
+        # e.g. uci = 'a1a2', action = 0
+        # e.g. uci = 'a1a3', action = 1
+        # e.g. uci = 'a1a4', action = 2
+        action = chess_utils.moves_to_actions[uci]
+        return action
 
     def step(self, action):
         # DO action
