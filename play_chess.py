@@ -2,9 +2,20 @@ from gym_chess import GymChessEnv
 from sb3_contrib import MaskablePPO
 import numpy as np
 import chess
+from custom_policy import CustomCNN
 
 # Instantiate the env
 env = GymChessEnv()
+
+policy_kwargs = dict(
+    features_extractor_class=CustomCNN,
+    features_extractor_kwargs=dict(features_dim=4672), # 64*7*7
+)
+adversary = MaskablePPO(
+    "MlpPolicy", env, gamma=0.99, seed=None, verbose=1,
+    device="cpu",
+    policy_kwargs=policy_kwargs,
+)
 adversary = MaskablePPO.load("last_model", env=env, verbose=1)
 env.set_adversary(adversary)
 

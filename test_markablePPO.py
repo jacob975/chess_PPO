@@ -13,7 +13,7 @@ import torch as th
 n_env = 4
 batch_size = 4096
 n_epochs = 5
-
+clip_range = 0.1
 
 #env = InvalidActionEnvDiscrete(dim=80, n_invalid_actions=60)
 env = GymChessEnv()
@@ -25,31 +25,36 @@ policy_kwargs = dict(
 )
 
 model = MaskablePPO(
-    "MlpPolicy", env, gamma=0.4, seed=None, verbose=1,
+    "MlpPolicy", env, gamma=0.99, seed=None, verbose=1,
     n_epochs=n_epochs,
     batch_size=batch_size,
+    clip_range=clip_range,
     policy_kwargs=policy_kwargs,
-    tensorboard_log="./markableppo_chess_tensorboard/"
+    tensorboard_log="./markableppo_chess_tensorboard/",
+    device="cuda",
 )
 # Reload the model
-model = MaskablePPO.load(
-    "last_model", env=env, verbose=1,
-    n_epochs=n_epochs,
-    batch_size=batch_size,
-    policy_kwargs=policy_kwargs,
-    tensorboard_log="./markableppo_chess_tensorboard/"
-)
+#model = MaskablePPO.load(
+#    "last_model", env=env, verbose=1,
+#    n_epochs=n_epochs,
+#    batch_size=batch_size,
+#    clip_range=clip_range,
+#    policy_kwargs=policy_kwargs,
+#    tensorboard_log="./markableppo_chess_tensorboard/"
+#    device="cuda"
+#)
 
 adversary = MaskablePPO(
-    "MlpPolicy", env, gamma=0.4, seed=None, verbose=1,
+    "MlpPolicy", env, gamma=0.99, seed=None, verbose=1,
     policy_kwargs=policy_kwargs,
+    device="cuda"
 )
 callback = SetAdversaryCallback(update_freq=1024*n_env, adversary=adversary)
 model.learn(
     1e7, callback=callback,
-    tb_log_name="resnet18-batch4096-env4-epoch5-ppo", 
+    tb_log_name="resnet18-batch4096-clip01-env4-epoch5-ppo-gamma099", 
     reset_num_timesteps=False # Important to keep the same number of timesteps
 )
 
-model.save("resnet18-batch4096-env4-epoch5-ppo")
+model.save("resnet18-batch4096-clip01-env4-epoch5-ppo-gamma099")
 del model # remove to demonstrate saving and loading
