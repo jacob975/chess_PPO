@@ -30,6 +30,7 @@ class SetAdversaryCallback(BaseCallback):
                 self.adversary.set_parameters(self.model.get_parameters())
                 self.training_env.env_method("set_adversary", self.adversary)
                 str_update = "Adversary updated"
+                self.model.save("adversary_model")
             else:
                 str_update = "Adversary not updated"
 

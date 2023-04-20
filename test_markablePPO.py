@@ -24,32 +24,40 @@ policy_kwargs = dict(
     features_extractor_kwargs=dict(features_dim=4672), # 64*7*7
 )
 
-model = MaskablePPO(
-    "MlpPolicy", env, gamma=0.99, seed=None, verbose=1,
-    n_epochs=n_epochs,
-    batch_size=batch_size,
-    clip_range=clip_range,
-    policy_kwargs=policy_kwargs,
-    tensorboard_log="./markableppo_chess_tensorboard/",
-    device="cuda",
-)
-# Reload the model
-#model = MaskablePPO.load(
-#    "last_model", env=env, verbose=1,
-#    n_epochs=n_epochs,
-#    batch_size=batch_size,
-#    clip_range=clip_range,
-#    policy_kwargs=policy_kwargs,
-#    tensorboard_log="./markableppo_chess_tensorboard/"
-#    device="cuda"
-#)
+# Agent model
+try:
+    model = MaskablePPO.load(
+        "last_model", env=env, gamma=0.99, verbose=1,
+        n_epochs=n_epochs,
+        batch_size=batch_size,
+        clip_range=clip_range,
+        policy_kwargs=policy_kwargs,
+        tensorboard_log="./markableppo_chess_tensorboard/",
+        device="cuda",
+    )
+except:
+    model = MaskablePPO(
+        "MlpPolicy", env, gamma=0.99, seed=None, verbose=1,
+        n_epochs=n_epochs,
+        batch_size=batch_size,
+        clip_range=clip_range,
+        policy_kwargs=policy_kwargs,
+        tensorboard_log="./markableppo_chess_tensorboard/",
+        device="cuda",
+    )
 
-adversary = MaskablePPO(
-    "MlpPolicy", env, gamma=0.99, seed=None, verbose=1,
-    policy_kwargs=policy_kwargs,
-    device="cuda"
-)
+# Adversary model
+try:
+    adversary = MaskablePPO.load("adversary_model", env=env, verbose=1)
+except:
+    adversary = MaskablePPO(
+        "MlpPolicy", env, gamma=0.99, seed=None, verbose=1,
+        policy_kwargs=policy_kwargs,
+        device="cuda"
+    )
+
 callback = SetAdversaryCallback(update_freq=1024*n_env, adversary=adversary)
+
 model.learn(
     1e7, callback=callback,
     tb_log_name="resnet18-batch4096-clip01-env4-epoch5-ppo-gamma099", 
