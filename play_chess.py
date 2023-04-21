@@ -6,6 +6,8 @@ from custom_policy import CustomCNN
 
 # Instantiate the env
 env = GymChessEnv()
+env.env.reset()
+env.turn = 0
 
 policy_kwargs = dict(
     features_extractor_class=CustomCNN,
@@ -20,7 +22,7 @@ adversary = MaskablePPO.load("last_model", env=env, verbose=1)
 env.set_adversary(adversary)
 
 # Play the game with the adversary
-env.env.reset()
+
 print(env.render())
 done = False
 while not done:
