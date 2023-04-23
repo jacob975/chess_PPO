@@ -14,6 +14,7 @@ n_env = 4
 batch_size = 4096
 n_epochs = 5
 clip_range = 0.1
+gamma = 1
 
 #env = InvalidActionEnvDiscrete(dim=80, n_invalid_actions=60)
 env = GymChessEnv()
@@ -27,7 +28,7 @@ policy_kwargs = dict(
 # Agent model
 try:
     model = MaskablePPO.load(
-        "last_model", env=env, gamma=0.99, verbose=1,
+        "last_model", env=env, gamma=gamma, verbose=1,
         n_epochs=n_epochs,
         batch_size=batch_size,
         clip_range=clip_range,
@@ -37,7 +38,7 @@ try:
     )
 except:
     model = MaskablePPO(
-        "MlpPolicy", env, gamma=0.99, seed=None, verbose=1,
+        "MlpPolicy", env, gamma=gamma, seed=None, verbose=1,
         n_epochs=n_epochs,
         batch_size=batch_size,
         clip_range=clip_range,
@@ -47,8 +48,7 @@ except:
     )
 
 # Adversary model
-try:
-    adversary = MaskablePPO.load("adversary_model", env=env, verbose=1)
+try: adversary = MaskablePPO.load("adversary_model", env=env, verbose=1)
 except:
     adversary = MaskablePPO(
         "MlpPolicy", env, gamma=0.99, seed=None, verbose=1,
@@ -60,9 +60,6 @@ callback = SetAdversaryCallback(update_freq=1024*n_env, adversary=adversary)
 
 model.learn(
     1e7, callback=callback,
-    tb_log_name="resnet18-batch4096-clip01-env4-epoch5-ppo-gamma099", 
+    tb_log_name="resnet18-batch4096-clip01-env4-epoch5-ppo-gamma1", 
     reset_num_timesteps=False # Important to keep the same number of timesteps
 )
-
-model.save("resnet18-batch4096-clip01-env4-epoch5-ppo-gamma099")
-del model # remove to demonstrate saving and loading

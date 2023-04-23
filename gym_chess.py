@@ -22,21 +22,26 @@ class GymChessEnv(gym.Env):
         self.turn = 0
 
         # The environment was set to a random state. i.e. all pieces are randomly placed on the board.
-        pre_steps = np.random.randint(2)
+        pre_steps = np.random.randint(10)
         for i in range(pre_steps):
             # Adversary
-            if isinstance(self.adversary, MaskablePPO):
-                # Get action from the adversary
-                action_mask = self.observe(f'player_{self.turn}')['action_mask']
-                action = int(self.adversary.predict(self.observe(f'player_{self.turn}')['observation'], action_masks=action_mask)[0])
-            elif isinstance(self.adversary, PPO):
-                # Get action from the adversary
-                action = int(self.adversary.predict(self.observe(f'player_{self.turn}')['observation'])[0])
-            else:
-                # If the adversary is not set, sample a random action from action_mask
-                action_mask = self.observe(f'player_{self.turn}')['action_mask']
-                possible_actions = np.where(action_mask>0)[0]
-                action = int(np.random.choice(possible_actions))
+            #if isinstance(self.adversary, MaskablePPO):
+            #    # Get action from the adversary
+            #    action_mask = self.observe(f'player_{self.turn}')['action_mask']
+            #    action = int(self.adversary.predict(self.observe(f'player_{self.turn}')['observation'], action_masks=action_mask)[0])
+            #elif isinstance(self.adversary, PPO):
+            #    # Get action from the adversary
+            #    action = int(self.adversary.predict(self.observe(f'player_{self.turn}')['observation'])[0])
+            #else:
+            #    # If the adversary is not set, sample a random action from action_mask
+            #    action_mask = self.observe(f'player_{self.turn}')['action_mask']
+            #    possible_actions = np.where(action_mask>0)[0]
+            #    action = int(np.random.choice(possible_actions))
+
+            # Random actions
+            action_mask = self.observe(f'player_{self.turn}')['action_mask']
+            possible_actions = np.where(action_mask>0)[0]
+            action = int(np.random.choice(possible_actions))
 
             self.env.step(action)
             done = self.env.terminations[f'player_{self.turn}']
