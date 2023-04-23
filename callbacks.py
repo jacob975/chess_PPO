@@ -27,18 +27,18 @@ class SetAdversaryCallback(BaseCallback):
             str_winrate = f"Agent winrate: {100*ep_rew_mean:.2f} %."
             # Update the adversary if the winrate of the agent is higher than 0.55
             if ep_rew_mean >= 0.55:
+                self.model.save("adversary_model")
                 self.adversary.set_parameters(self.model.get_parameters())
                 self.training_env.env_method("set_adversary", self.adversary)
                 str_update = "Adversary updated"
-                self.model.save("adversary_model")
             else:
                 str_update = "Adversary not updated"
 
-            if ep_rew_mean > self.best_winrate:
-                self.best_winrate = ep_rew_mean
-                self.model.save("best_model")
-                str_update += " and model saved"
-                self.best_winrate_no_improvement = 0
+            #if ep_rew_mean > self.best_winrate:
+            #    self.best_winrate = ep_rew_mean
+            #    self.model.save("best_model")
+            #    str_update += " and model saved"
+            #    self.best_winrate_no_improvement = 0
 
             # Save another model anyway
             self.model.save("last_model")

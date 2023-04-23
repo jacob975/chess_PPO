@@ -33,7 +33,7 @@ try:
         batch_size=batch_size,
         clip_range=clip_range,
         policy_kwargs=policy_kwargs,
-        tensorboard_log="./markableppo_chess_tensorboard/",
+        tensorboard_log="./maskableppo_chess_tensorboard/",
         device="cuda",
     )
 except:
@@ -43,7 +43,7 @@ except:
         batch_size=batch_size,
         clip_range=clip_range,
         policy_kwargs=policy_kwargs,
-        tensorboard_log="./markableppo_chess_tensorboard/",
+        tensorboard_log="./maskableppo_chess_tensorboard/",
         device="cuda",
     )
 
