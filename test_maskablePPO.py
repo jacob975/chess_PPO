@@ -14,7 +14,7 @@ n_env = 4
 batch_size = 4096
 n_epochs = 5
 clip_range = 0.1
-gamma = 1
+gamma = 0.996
 
 #env = InvalidActionEnvDiscrete(dim=80, n_invalid_actions=60)
 env = GymChessEnv()
@@ -60,6 +60,6 @@ callback = SetAdversaryCallback(update_freq=1024*n_env, adversary=adversary)
 
 model.learn(
     1e7, callback=callback,
-    tb_log_name="resnet18-batch4096-clip01-env4-epoch5-ppo-gamma1", 
+    tb_log_name="resnet18-batch4096-clip01-env4-epoch5-ppo-gamma0996", 
     reset_num_timesteps=False # Important to keep the same number of timesteps
 )

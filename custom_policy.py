@@ -56,7 +56,7 @@ class CustomCNN(BaseFeaturesExtractor):
     :param features_dim: (int) Number of features extracted.
         This corresponds to the number of unit for the last layer.
     """
-    def __init__(self, observation_space: spaces.Box, features_dim: int = 256):
+    def __init__(self, observation_space: spaces.Box, features_dim: int = 256, training: bool = True):
         super().__init__(observation_space, features_dim)
         # We assume CxHxW images (channels first)
         # Re-ordering will be done by pre-preprocessing or wrapper
@@ -65,13 +65,19 @@ class CustomCNN(BaseFeaturesExtractor):
         #self.kernel = vanilla_cnn(n_input_channels, feature_channels)
         self.kernel = customed_resnet(n_input_channels, feature_channels)
         #self.kernel = customed_resnext(n_input_channels, feature_channels)
-        
+        self.training = training
+        self.temp = 1
         self.flatten = nn.Flatten()
-        
+
+    def gumbel_prob(self, x):
+        z = -th.log(-th.log(th.rand_like(x)))
+        return (x + z) / self.temp
+    
     def forward(self, x: th.Tensor) -> th.Tensor:
         x = self.kernel(x)
         x = x.permute(0, 2, 3, 1)
         x = self.flatten(x)
+        if self.training: x = self.gumbel_prob(x)
         return x
 
 # Custom CNN for supervised learning
