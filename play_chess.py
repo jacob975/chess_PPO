@@ -28,7 +28,7 @@ print(env.render())
 done = False
 while not done:
     # Show all possible actions
-    action_mask = env.action_mask
+    action_mask = env.observe(f"player_{env.turn}")["action_mask"]
     possible_actions = np.where(action_mask == 1)[0]
     # Integer to UCI
     possible_moves = [env.action_to_move(action) for action in possible_actions]
