@@ -19,6 +19,7 @@ adversary = MaskablePPO(
     policy_kwargs=policy_kwargs,
 )
 adversary = MaskablePPO.load("last_model", env=env, verbose=1)
+adversary.policy.features_extractor.training = False
 env.set_adversary(adversary)
 
 # Play the game with the adversary

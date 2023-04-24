@@ -56,6 +56,8 @@ except:
         device="cuda"
     )
 
+adversary.policy.features_extractor.training = False
+
 callback = SetAdversaryCallback(update_freq=1024*n_env, adversary=adversary)
 
 model.learn(
