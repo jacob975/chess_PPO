@@ -2,7 +2,7 @@ from stable_baselines3.common.callbacks import BaseCallback
 import numpy as np
 
 class SetAdversaryCallback(BaseCallback):
-    def __init__(self, update_freq, adversary):
+    def __init__(self, update_freq, adversary, model_name = "last_model", adversary_name = "adversary_model"):
         super(SetAdversaryCallback, self).__init__()
         self.update_freq = update_freq
         # THe adversary should have the same type as the model
@@ -10,6 +10,8 @@ class SetAdversaryCallback(BaseCallback):
         self.adversary = adversary
         self.best_winrate = 0
         self.best_winrate_no_improvement = 0 # Number of times the winrate has not improved
+        self.model_name = model_name
+        self.adversary_name = adversary_name
 
     def _init_callback(self) -> None:
         #if self.adversary is None:
@@ -27,31 +29,15 @@ class SetAdversaryCallback(BaseCallback):
             str_winrate = f"Agent winrate: {100*ep_rew_mean:.2f} %."
             # Update the adversary if the winrate of the agent is higher than 0.55
             if ep_rew_mean >= 0.55:
-                self.model.save("adversary_model")
+                self.model.save(self.adversary_name)
                 self.adversary.set_parameters(self.model.get_parameters())
                 self.training_env.env_method("set_adversary", self.adversary)
                 str_update = "Adversary updated"
             else:
                 str_update = "Adversary not updated"
 
-            #if ep_rew_mean > self.best_winrate:
-            #    self.best_winrate = ep_rew_mean
-            #    self.model.save("best_model")
-            #    str_update += " and model saved"
-            #    self.best_winrate_no_improvement = 0
-
             # Save another model anyway
-            self.model.save("last_model")
-
-            # Stop the training if the best_winrate has no improvement for 5 times
-            #elif agent_winrate < self.best_winrate:
-            #    self.best_winrate_no_improvement += 1
-            #    if self.best_winrate_no_improvement >= 5:
-            #        self.training_env.env_method("set_adversary", None)
-            #        str_update += " and training stopped"
-            #        print(str_winrate, str_update)
-            #        self._on_training_end()
-            #        return False
+            self.model.save(self.model_name)
             
             print(str_winrate, str_update)
             
