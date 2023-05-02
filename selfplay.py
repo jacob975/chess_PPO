@@ -10,16 +10,19 @@ env = GymChessEnv()
 #env.env.reset()
 #env.turn = 0
 
+dropout = 0.4
+nlayers = 2
+
 policy_kwargs = dict(
     features_extractor_class=TransformerModel,
-    features_extractor_kwargs=dict(features_dim=4672), # 64*7*7
+    features_extractor_kwargs=dict(features_dim=4672, dropout=dropout, nlayers=nlayers),
 )
 adversary = MaskablePPO(
     "MlpPolicy", env, gamma=0.99, seed=None, verbose=1,
-    device="cpu",
     policy_kwargs=policy_kwargs,
+    device="cpu",
 )
-adversary = MaskablePPO.load("transformer-batch4k-clip02-dropout02-env4-epoch5-ppo-gamma099/last_model", env=env, verbose=1)
+adversary = MaskablePPO.load("transformer-nlayer2-batch2k-clip02-dropout04-env4-epoch5-ppo-gamma099/last_model", env=env, verbose=1, policy_kwargs=policy_kwargs)
 adversary.policy.features_extractor.training = False
 env.set_adversary(adversary)
 
@@ -34,7 +37,7 @@ while not done:
     env.env.step(action)
     done = env.env.terminations[f'player_{env.turn}']
     print(env.render())
-    print(f"reward: {env.env.rewards[f'player_{env.turn}']}, done: {done}")
+    print(f"player 0: {env.env.rewards[f'player_0']}, player 1: {env.env.rewards[f'player_1']}, done: {done}")
     if done:
         env.reset() # Reset again if the game is done after a random action
         break

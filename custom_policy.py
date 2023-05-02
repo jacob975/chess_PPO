@@ -106,7 +106,7 @@ class TransformerModel(BaseFeaturesExtractor):
             d_model:int=512, 
             nhead:int=4,
             d_hid:int=2048, 
-            nlayers:int=1,
+            nlayers:int=4,
             dropout:float=0.1,
         ):
         super().__init__(observation_space, features_dim)
@@ -115,7 +115,6 @@ class TransformerModel(BaseFeaturesExtractor):
         # Re-ordering will be done by pre-preprocessing or wrapper
         n_input_channels = observation_space.shape[0] # Input channels
         n_output_channels = features_dim // (observation_space.shape[1] * observation_space.shape[2]) # Output channels
-
         self.model_type = 'Transformer'
         self.emb = nn.Linear(n_input_channels, d_model)
         self.pos_encoder = PositionalEncoding(d_model, dropout)

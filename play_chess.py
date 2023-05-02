@@ -4,6 +4,9 @@ import numpy as np
 import chess
 from custom_policy import CustomCNN, TransformerModel
 
+dropout = 0.5
+nlayers = 2
+
 # Instantiate the env
 env = GymChessEnv()
 env.env.reset()
@@ -11,14 +14,16 @@ env.turn = 0
 
 policy_kwargs = dict(
     features_extractor_class=TransformerModel,
-    features_extractor_kwargs=dict(features_dim=4672), # 64*7*7
+    features_extractor_kwargs=dict(features_dim=4672, dropout = dropout, nlayers=nlayers),
 )
 adversary = MaskablePPO(
     "MlpPolicy", env, gamma=0.99, seed=None, verbose=1,
     device="cpu",
     policy_kwargs=policy_kwargs,
 )
-adversary = MaskablePPO.load("transformer-batch4k-clip02-dropout02-env4-epoch5-ppo-gamma099/last_model", env=env, verbose=1)
+adversary = MaskablePPO.load(
+    "transformer-nlayer2-batch2k-clip02-dropout04-env4-epoch5-ppo-gamma099/last_model", env=env, verbose=1,
+)
 adversary.policy.features_extractor.training = False
 env.set_adversary(adversary)
 

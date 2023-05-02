@@ -11,13 +11,14 @@ from custom_policy import CustomCNN, TransformerModel
 import torch as th
 
 n_env = 4
-batch_size = 4096
+batch_size = 2048
 n_epochs = 5
 clip_range = 0.2
+nlayers = 1
 gamma = 0.99
-dropout = 0.2
-model_name = "transformer-batch4k-clip02-dropout02-env4-epoch5-ppo-gamma099/last_model"
-adversary_name = "transformer-batch4k-clip02-dropout02-env4-epoch5-ppo-gamma099/adversary_model"
+dropout = 0.4
+model_path = "transformer-nlayer1-batch2k-clip02-dropout04-env4-epoch5-ppo-gamma099"
+adversary_path = model_path
 
 #env = InvalidActionEnvDiscrete(dim=80, n_invalid_actions=60)
 env = GymChessEnv()
@@ -25,13 +26,13 @@ env = make_vec_env(GymChessEnv, n_envs=n_env, seed=0, vec_env_cls=DummyVecEnv)
 
 policy_kwargs = dict(
     features_extractor_class=TransformerModel,
-    features_extractor_kwargs=dict(features_dim=4672, dropout=dropout), # 64*7*7
+    features_extractor_kwargs=dict(features_dim=4672, dropout=dropout, nlayers=nlayers),
 )
 
 # Agent model
 try:
     model = MaskablePPO.load(
-        model_name, env=env, gamma=gamma, verbose=1,
+        model_path+"/last_model", env=env, gamma=gamma, verbose=1,
         n_epochs=n_epochs,
         batch_size=batch_size,
         clip_range=clip_range,
@@ -51,7 +52,7 @@ except:
     )
 
 # Adversary model
-try: adversary = MaskablePPO.load(adversary_name, env=env, verbose=1)
+try: adversary = MaskablePPO.load(adversary_path+"/adversary_model", env=env, verbose=1)
 except:
     adversary = MaskablePPO(
         "MlpPolicy", env, gamma=0.99, seed=None, verbose=1,
@@ -64,12 +65,12 @@ adversary.policy.features_extractor.training = False
 callback = SetAdversaryCallback(
     update_freq=1024*n_env, 
     adversary=adversary, 
-    model_name=model_name, 
-    adversary_name=adversary_name
+    model_name=model_path+"/last_model", 
+    adversary_name=adversary_path+"/adversary_model",
 )
 
 model.learn(
     1e7, callback=callback,
-    tb_log_name="transformer-batch4k-clip02-dropout02-env4-epoch5-ppo-gamma099",
+    tb_log_name=model_path,
     reset_num_timesteps=False # Important to keep the same number of timesteps
 )
