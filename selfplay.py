@@ -10,19 +10,21 @@ env = GymChessEnv()
 #env.env.reset()
 #env.turn = 0
 
-dropout = 0.4
-nlayers = 2
+dropout = 0.1
+nlayers = 1
+d_model = 512
+d_hid = 2048
 
 policy_kwargs = dict(
     features_extractor_class=TransformerModel,
-    features_extractor_kwargs=dict(features_dim=4672, dropout=dropout, nlayers=nlayers),
+    features_extractor_kwargs=dict(features_dim=4672, dropout=dropout, nlayers=nlayers, d_model=d_model, d_hid = d_hid),
 )
 adversary = MaskablePPO(
     "MlpPolicy", env, gamma=0.99, seed=None, verbose=1,
     policy_kwargs=policy_kwargs,
     device="cpu",
 )
-adversary = MaskablePPO.load("transformer-nlayer2-batch2k-clip02-dropout04-env4-epoch5-ppo-gamma099/last_model", env=env, verbose=1, policy_kwargs=policy_kwargs)
+adversary = MaskablePPO.load("transformer-nlayer4-batch4k-clip02-dropout01-env4-epoch5-ppo-gamma099/last_model", env=env, verbose=1)
 adversary.policy.features_extractor.training = False
 env.set_adversary(adversary)
 

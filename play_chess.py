@@ -22,7 +22,7 @@ adversary = MaskablePPO(
     policy_kwargs=policy_kwargs,
 )
 adversary = MaskablePPO.load(
-    "transformer-nlayer2-batch2k-clip02-dropout04-env4-epoch5-ppo-gamma099/last_model", env=env, verbose=1,
+    "transformer-nlayer1-batch4k-clip02-dropout01-env4-epoch5-ppo-gamma099/last_model", env=env, verbose=1,
 )
 adversary.policy.features_extractor.training = False
 env.set_adversary(adversary)
